@@ -8,6 +8,6 @@
     "chalk": "^5.2.0",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
-    "zilch-game-engine": "^0.0.13"
+    "zilch-game-engine": "^0.0.14"
   }
 }
