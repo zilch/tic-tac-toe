@@ -16,7 +16,7 @@ export class Renderer {
     this.container.style.bottom = "20px";
     this.container.style.left = "20px";
     this.container.style.right = "20px";
-    this.container.style.color = "white";
+    this.container.style.color = "green";
     document.body.appendChild(this.container);
   }
   render(params: RenderParams<State, Config>) {
