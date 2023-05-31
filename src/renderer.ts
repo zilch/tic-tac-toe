@@ -1,6 +1,5 @@
 import type { RenderParams } from "zilch-game-engine";
-import type { State } from "./index";
-import type { Config } from "./index";
+import type { Config, State } from "./config";
 import {
   ArcRotateCamera,
   Color3,
@@ -18,7 +17,7 @@ export function toBabylonColor(colorValue: string) {
   return new Color3(color.red() / 255, color.green() / 255, color.blue() / 255);
 }
 
-export class Renderer {
+Zilch.Renderer = class {
   engine: Engine;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -78,4 +77,4 @@ export class Renderer {
       this.engine.resize();
     }
   }
-}
+};

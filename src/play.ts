@@ -1,13 +1,13 @@
-import { BotOutcome, Engine, GameInstance } from "zilch-game-engine";
+import { BotOutcome, Engine, Game } from "zilch-game-engine";
 import chalk from "chalk";
-import { Config, State } from "./index";
+import { Config, State } from "./config";
 
 interface Move {
   x: number;
   y: number;
 }
 
-export async function* play(game: GameInstance<Config>): Engine<State> {
+Zilch.play = async function* (game) {
   let turn = game.config.initialTurn;
   const state: State = {
     board: game.config.initialBoard,
@@ -50,7 +50,7 @@ export async function* play(game: GameInstance<Config>): Engine<State> {
 
     turn++;
   }
-}
+};
 
 function parseMoveResponse(response: string): Move {
   const [x, y] = response.split(",").map((value) => {
