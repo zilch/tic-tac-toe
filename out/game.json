@@ -1,0 +1,17 @@
+{
+  "name": "Tic-Tac-Toe",
+  "v": 1,
+  "slots": [
+    "Player One · X",
+    "Player Two · O"
+  ],
+  "minSlots": 2,
+  "defaultTimeLimitMilliseconds": {
+    "move": 100,
+    "game": null
+  },
+  "moveDelay": 1500,
+  "templates": [
+    "javascript.node"
+  ]
+}

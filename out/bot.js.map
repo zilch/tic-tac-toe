@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/bot.ts"],
+  "sourcesContent": ["import type { CreateBotParams } from \"zilch-game-engine\";\n\nZilch.Bot = class {\n  params: CreateBotParams;\n\n  constructor(params: CreateBotParams) {\n    this.params = params;\n  }\n\n  move(payload: string) {\n    // Actual implementation of this bot is private. Wouldn't be very fun if you\n    // could just copy/paste the boss bot's code!\n    return \"no-op\";\n  }\n};\n"],
+  "mappings": "AAEA,MAAM,IAAM,KAAM,CAChB,OAEA,YAAYA,EAAyB,CACnC,KAAK,OAASA,CAChB,CAEA,KAAKC,EAAiB,CAGpB,MAAO,OACT,CACF",
+  "names": ["params", "payload"]
+}
