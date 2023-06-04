@@ -6,10 +6,14 @@ import {
   Engine,
   HemisphericLight,
   MeshBuilder,
+  PointLight,
   Scene,
+  SceneLoader,
   ScenePerformancePriority,
+  ShadowGenerator,
   Vector3,
 } from "@babylonjs/core";
+import "@babylonjs/loaders";
 import * as csx from "csx";
 
 export function toBabylonColor(colorValue: string) {
@@ -21,53 +25,58 @@ Zilch.Renderer = class {
   engine: Engine;
 
   constructor(canvas: HTMLCanvasElement) {
-    fetch(ASSETS_PATH + "/hello.txt")
-      .then((response) => response.text())
-      .then((value) => console.log(value));
-
     this.engine = new Engine(canvas, true, {}, true);
-    const scene = new Scene(this.engine);
-    scene.performancePriority = ScenePerformancePriority.Aggressive;
 
-    const mainLight = new HemisphericLight("mainLight", Vector3.Zero(), scene);
-    mainLight.groundColor = Color3.White();
-    mainLight.specular = Color3.Black();
+    const loadIt = async () => {
+      const scene = await SceneLoader.LoadAsync(
+        ASSETS_PATH + "/",
+        "tic-tac-toe.glb",
+        this.engine
+      );
+      scene.performancePriority = ScenePerformancePriority.Aggressive;
 
-    const initialBeta = Math.PI * 0.24;
-    const initialAlpha = Math.PI * 2.75;
+      const shadowGenerators: ShadowGenerator[] = [];
+      scene.lights.forEach((light) => {
+        light.intensity *= (0.03 * 8000) / 163054.2392;
+        if (light instanceof PointLight) {
+          shadowGenerators.push(new ShadowGenerator(1024, light));
+        }
+      });
+      scene.meshes.forEach((mesh) => {
+        shadowGenerators.forEach((shadowGenerator) => {
+          shadowGenerator.getShadowMap()?.renderList?.push(mesh);
+        });
+        mesh.receiveShadows = true;
+      });
 
-    const zoomRadius = 50;
-    const camera = new ArcRotateCamera(
-      "camera",
-      initialAlpha,
-      initialBeta,
-      zoomRadius,
-      Vector3.Zero(),
-      scene
-    );
-    camera.attachControl(canvas, false);
-    camera.radius = zoomRadius;
-    camera.lowerRadiusLimit = zoomRadius;
-    camera.upperRadiusLimit = zoomRadius;
-    camera.upperBetaLimit = Math.PI * 0.24;
-    camera.useAutoRotationBehavior = true;
-    scene.clearColor = toBabylonColor("#559900").toColor4();
+      new HemisphericLight("mainLight", Vector3.Zero(), scene);
 
-    MeshBuilder.CreateBox("lightBackground", {
-      size: 3,
-      faceColors: [
-        toBabylonColor("#00bb33").toColor4(),
-        toBabylonColor("#00bb33").toColor4(),
-        toBabylonColor("#aa0000").toColor4(),
-        toBabylonColor("#aa0000").toColor4(),
-        toBabylonColor("#ff0000").toColor4(),
-        toBabylonColor("#ff0000").toColor4(),
-      ],
-    });
+      const initialBeta = Math.PI * 0.22;
+      const initialAlpha = Math.PI * 2.75;
 
-    this.engine.runRenderLoop(() => {
-      scene.render();
-    });
+      const zoomRadius = 22;
+      const camera = new ArcRotateCamera(
+        "camera",
+        initialAlpha,
+        initialBeta,
+        zoomRadius,
+        new Vector3(0, -3, 0),
+        scene
+      );
+      camera.attachControl(canvas, false);
+      camera.radius = zoomRadius;
+      camera.lowerRadiusLimit = zoomRadius;
+      camera.upperRadiusLimit = zoomRadius;
+      camera.upperBetaLimit = Math.PI * 0.24;
+      camera.useAutoRotationBehavior = true;
+      scene.clearColor = toBabylonColor("#2F343C").toColor4();
+
+      this.engine.runRenderLoop(() => {
+        scene.render();
+      });
+    };
+
+    loadIt();
   }
   render({ current, previous }: RenderParams<State, Config>) {
     if (
