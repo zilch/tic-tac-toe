@@ -31,8 +31,7 @@ Zilch.play = async function* (game) {
 
     const spotValue = state.board[move.x][move.y];
 
-    if (typeof spotValue === "number") {
-      state.board[move.x][move.y] = [spotValue, turn];
+    if (spotValue !== "empty") {
       bot.writeln(
         chalk.red(`\nSpot { x: ${move.x}, y: ${move.y} } already occupied.`)
       );
@@ -44,7 +43,7 @@ Zilch.play = async function* (game) {
         botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
       ];
     } else {
-      state.board[move.x][move.y] = turn;
+      state.board[move.x][move.y] = turn % 2 === 0 ? "x" : "o";
       yield state;
     }
 
@@ -67,19 +66,7 @@ function parseMoveResponse(response: string): Move {
 }
 
 function createMovePayload(state: State) {
-  const board = state.board.map((row) => {
-    return row.map((turn) => {
-      if (turn === null) {
-        return "empty" as const;
-      } else if (Array.isArray(turn) ? turn[0] % 2 === 0 : turn % 2 === 0) {
-        return "x" as const;
-      } else {
-        return "o" as const;
-      }
-    });
-  });
-
-  return board.map((row) => row.join(",")).join("|");
+  return state.board.map((row) => row.join(",")).join("|");
 }
 
 function getOutcomeAndWinningLine(
@@ -110,19 +97,15 @@ function getOutcomeAndWinningLine(
     [bottomLeft, centerCenter, topRight],
   ];
 
-  for (const player of [0, 1] as const) {
+  for (const player of ["x", "o"] as const) {
     const winningLine = winningLines.find((line) =>
       line.every((position) => {
         let value = state.board[position.x]?.[position.y];
-        if (value === null) {
+        if (value === "empty") {
           return false;
         }
 
-        if (Array.isArray(value)) {
-          value = value[0] ?? 0;
-        }
-
-        return value % 2 === player;
+        return value === player;
       })
     );
 
@@ -130,8 +113,8 @@ function getOutcomeAndWinningLine(
       return {
         winningLine,
         outcome: [
-          player === 0 ? BotOutcome.Victory : BotOutcome.Defeat,
-          player === 1 ? BotOutcome.Victory : BotOutcome.Defeat,
+          player === "x" ? BotOutcome.Victory : BotOutcome.Defeat,
+          player === "o" ? BotOutcome.Victory : BotOutcome.Defeat,
         ],
       };
     }
@@ -139,7 +122,7 @@ function getOutcomeAndWinningLine(
 
   for (let x = 0; x < 3; x++) {
     for (let y = 0; y < 3; y++) {
-      if (state.board[x][y] === null) {
+      if (state.board[x][y] === "empty") {
         return null;
       }
     }

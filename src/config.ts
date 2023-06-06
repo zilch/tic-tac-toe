@@ -7,12 +7,12 @@ import { ZilchNamespace } from "zilch-game-engine";
 type RawConfig = FromSchema<typeof configSchema>;
 
 export interface Config {
-  initialBoard: (number | null)[][];
+  initialBoard: ("x" | "o" | "empty")[][];
   initialTurn: number;
 }
 
 export interface State {
-  board: (number | [number, number] | null)[][];
+  board: ("x" | "o" | "empty")[][];
 }
 
 declare global {
@@ -68,11 +68,13 @@ Zilch.parseConfig = (rawConfig) => {
   const initialBoard = rawConfig.startingPosition.map((row) => {
     return row.map((spot) => {
       if (spot === "x") {
-        return xCount++ * 2;
+        xCount++;
+        return "x" as const;
       } else if (spot === "o") {
-        return oCount++ * 2 + 1;
+        oCount++;
+        return "o" as const;
       } else {
-        return null;
+        return "empty" as const;
       }
     });
   });
@@ -90,17 +92,7 @@ Zilch.parseConfig = (rawConfig) => {
 };
 
 Zilch.serializeConfig = (config) => {
-  const board = config.initialBoard.map((row) => {
-    return row.map((spot) => {
-      if (spot === null) {
-        return "empty";
-      } else {
-        return spot % 2 === 0 ? "x" : "o";
-      }
-    });
-  });
-
-  return board.map((row) => row.join(",")).join("|");
+  return config.initialBoard.map((row) => row.join(",")).join("|");
 };
 
 Zilch.summarizeConfig = (config) => {
