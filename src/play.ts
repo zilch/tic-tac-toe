@@ -9,17 +9,18 @@ interface Move {
 
 Zilch.play = async function* (game) {
   let turn = game.config.initialTurn;
+
   const state: State = {
     board: game.config.initialBoard,
   };
 
+  const outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
+
+  if (outcome !== null) {
+    yield { outcome, state };
+  }
+
   while (true) {
-    const outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
-
-    if (outcome !== null) {
-      return outcome;
-    }
-
     const botIndex = turn % 2 === 0 ? 0 : 1;
     const bot = game.bots[botIndex];
 
@@ -36,15 +37,18 @@ Zilch.play = async function* (game) {
         chalk.red(`\nSpot { x: ${move.x}, y: ${move.y} } already occupied.`)
       );
 
-      yield state;
-
-      return [
-        botIndex === 0 ? BotOutcome.Error : BotOutcome.None,
-        botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
-      ];
+      yield {
+        outcome: [
+          botIndex === 0 ? BotOutcome.Error : BotOutcome.None,
+          botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
+        ],
+        state,
+      };
     } else {
       state.board[move.x][move.y] = turn % 2 === 0 ? "x" : "o";
-      yield state;
+      const outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
+
+      yield { state, outcome };
     }
 
     turn++;

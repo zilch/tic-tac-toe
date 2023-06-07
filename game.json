@@ -4,7 +4,7 @@
   "name": "Tic-Tac-Toe",
   "slots": ["Player One · X", "Player Two · O"],
   "minSlots": 2,
-  "moveDelay": 1500,
+  "moveDelay": 600,
   "defaultTimeLimitMilliseconds": {
     "game": null,
     "move": 100

@@ -1,12 +1,7 @@
 import type { RenderParams, RenderState } from "zilch-game-engine";
 import type { Config, State } from "./config";
 import {
-  Animation,
-  ArcRotateCamera,
-  Color3,
   DynamicTexture,
-  EasingFunction,
-  Node,
   Engine,
   InstancedMesh,
   Mesh,
@@ -18,26 +13,25 @@ import {
   ShadowGenerator,
   SpotLight,
   Vector3,
-  Material,
   BackEase,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
-import * as csx from "csx";
+import { runAnimation, toBabylonColor } from "./ui/utils";
+import { Camera } from "./ui/Camera";
+import { SymbolMaterial } from "./ui/SymbolMaterial";
+import { Ground } from "./ui/Ground";
 
-export function toBabylonColor(colorValue: string) {
-  const color = csx.color(colorValue);
-  return new Color3(color.red() / 255, color.green() / 255, color.blue() / 255);
-}
-
-Zilch.Renderer = class {
+Zilch.Renderer = class Renderer {
   engine: Engine;
   scene: Scene | null = null;
-  xMaterial: PBRMaterial | null = null;
-  oMaterial: PBRMaterial | null = null;
+  xMaterial: SymbolMaterial | null = null;
+  oMaterial: SymbolMaterial | null = null;
   initializeOperation: Promise<void>;
+  camera: Camera | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas);
+    this.engine.loadingScreen.loadingUIBackgroundColor = "#2F343C";
     this.initializeOperation = this.initialize();
   }
 
@@ -51,12 +45,14 @@ Zilch.Renderer = class {
       this.engine.resize();
     }
 
+    this.camera?.update(current.status, current.view);
+
     if (current.botColors[0] !== previous?.botColors[0] && this.xMaterial) {
-      this.xMaterial.albedoColor = this.createSymbolColor(current.botColors[0]);
+      this.xMaterial.updateColor(current.botColors[0]);
     }
 
     if (current.botColors[1] !== previous?.botColors[1] && this.oMaterial) {
-      this.oMaterial.albedoColor = this.createSymbolColor(current.botColors[1]);
+      this.oMaterial.updateColor(current.botColors[1]);
     }
 
     const currentBoard = this.getEffectiveBoard(current);
@@ -103,14 +99,6 @@ Zilch.Renderer = class {
     );
   }
 
-  createSymbolColor(baseColor: string | null) {
-    if (baseColor === null) {
-      return toBabylonColor("#946638");
-    }
-
-    return toBabylonColor(csx.color(baseColor).darken(0.1).toString());
-  }
-
   async initialize() {
     this.scene = await SceneLoader.LoadAsync(
       ASSETS_PATH + "/",
@@ -121,8 +109,9 @@ Zilch.Renderer = class {
     this.scene.performancePriority = ScenePerformancePriority.Intermediate;
     this.scene.clearColor = toBabylonColor("#2F343C").toColor4();
 
-    this.createCamera();
-    this.createGround();
+    this.camera = new Camera(this.engine, this.scene);
+
+    new Ground(this.scene);
     this.createBlocks();
     this.createShadows();
 
@@ -145,17 +134,13 @@ Zilch.Renderer = class {
       }
 
       if (mesh.name === "XMesh") {
-        this.xMaterial = new PBRMaterial("XMaterial", this.scene!);
-        this.xMaterial.albedoColor = this.createSymbolColor(null);
-        this.xMaterial.roughness = 0.9;
-        mesh.material = this.xMaterial;
+        this.xMaterial = new SymbolMaterial(this.scene!);
+        mesh.material = this.xMaterial.material;
       }
 
       if (mesh.name === "OMesh") {
-        this.oMaterial = new PBRMaterial("OMaterial", this.scene!);
-        this.oMaterial.albedoColor = this.createSymbolColor(null);
-        this.oMaterial.roughness = 0.9;
-        mesh.material = this.oMaterial;
+        this.oMaterial = new SymbolMaterial(this.scene!);
+        mesh.material = this.oMaterial.material;
       }
 
       if (mesh instanceof Mesh && mesh.name === "RodMesh") {
@@ -201,142 +186,21 @@ Zilch.Renderer = class {
     this.scene!.lights.forEach((light) => {
       light.intensity /= 230;
       if (light instanceof SpotLight) {
-        const shadowGenerator = new ShadowGenerator(512, light);
+        const shadowGenerator = new ShadowGenerator(32, light, true);
         shadowGenerator.usePercentageCloserFiltering = true;
+
         shadowGenerators.push(shadowGenerator);
       }
     });
+
     this.scene?.meshes.forEach((mesh) => {
       shadowGenerators.forEach((shadowGenerator) => {
         shadowGenerator.getShadowMap()?.renderList?.push(mesh);
       });
-      mesh.receiveShadows = true;
+
+      if (!mesh.isAnInstance) {
+        mesh.receiveShadows = true;
+      }
     });
-  }
-
-  createCamera() {
-    const initialBeta = Math.PI * 0.2;
-    const initialAlpha = Math.PI * 2.65;
-
-    const zoomRadius = 19;
-    const camera = new ArcRotateCamera(
-      "camera",
-      initialAlpha,
-      initialBeta,
-      zoomRadius,
-      new Vector3(0, -2, 0),
-      this.scene!
-    );
-
-    camera.attachControl(this.engine.getRenderingCanvas()!, false);
-    camera.radius = zoomRadius;
-    camera.lowerRadiusLimit = zoomRadius;
-    camera.upperRadiusLimit = zoomRadius;
-    camera.upperBetaLimit = Math.PI * 0.4;
-    camera.useAutoRotationBehavior = true;
-  }
-
-  createGround() {
-    const radius = 40;
-
-    // Texture
-    const groundTexture = new DynamicTexture(
-      "GroundTexture",
-      { width: radius * 2, height: radius * 2 },
-      this.scene,
-      false
-    );
-    const ctx = groundTexture.getContext();
-    const gradient = ctx.createRadialGradient(
-      radius,
-      radius,
-      0,
-      radius,
-      radius,
-      radius
-    );
-    gradient.addColorStop(0, "rgba(56, 62, 71, .5)");
-    gradient.addColorStop(1, "rgba(56, 62, 71, 0)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, radius * 2, radius * 2);
-    groundTexture.update();
-
-    // Material
-    const groundMaterial = new PBRMaterial("GroundMaterial", this.scene!);
-    groundMaterial.roughness = 0.8;
-    groundTexture.hasAlpha = true;
-    groundMaterial.albedoTexture = groundTexture;
-    groundMaterial.useAlphaFromAlbedoTexture = true;
-
-    // Mesh
-    const groundMesh = MeshBuilder.CreateDisc(
-      "GroundMesh",
-      {
-        radius: radius,
-        tessellation: 30,
-      },
-      this.scene
-    );
-    groundMesh.material = groundMaterial;
-    groundMesh.rotation.x = Math.PI / 2;
-    groundMesh.position.y = -1.35;
   }
 };
-
-function runAnimation(
-  target: Node | Material,
-  animationData: {
-    property: string;
-    keys: {
-      frame: number;
-      value: unknown;
-    }[];
-    easingFunction?: EasingFunction;
-    easingMode?: "inout" | "in" | "out";
-  }[],
-  options: {
-    maxFrame?: number;
-    easingFunction?: EasingFunction;
-    easingMode?: "inout" | "in" | "out";
-  } = {}
-) {
-  return new Promise<void>((resolve) => {
-    const animations = animationData.map((data) => {
-      const animation = new Animation(
-        "animation",
-        data.property,
-        60,
-        typeof data.keys[0].value === "number"
-          ? Animation.ANIMATIONTYPE_FLOAT
-          : Animation.ANIMATIONTYPE_VECTOR3
-      );
-      animation.setKeys(data.keys);
-
-      const easingFunction = data.easingFunction ?? options.easingFunction;
-
-      if (easingFunction) {
-        easingFunction.setEasingMode(
-          {
-            in: EasingFunction.EASINGMODE_EASEIN,
-            out: EasingFunction.EASINGMODE_EASEOUT,
-            inout: EasingFunction.EASINGMODE_EASEINOUT,
-          }[data.easingMode ?? options.easingMode ?? "inout"]
-        );
-
-        animation.setEasingFunction(easingFunction);
-      }
-
-      return animation;
-    });
-
-    const maxFrame =
-      options.maxFrame ??
-      Math.max(
-        ...animationData.flatMap(({ keys }) => keys.map((key) => key.frame))
-      );
-
-    target
-      .getScene()
-      .beginDirectAnimation(target, animations, 0, maxFrame, false, 1, resolve);
-  });
-}
