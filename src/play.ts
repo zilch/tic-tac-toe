@@ -73,7 +73,7 @@ function createMovePayload(state: State) {
   return state.board.map((row) => row.join(",")).join("|");
 }
 
-function getOutcomeAndWinningLine(
+export function getOutcomeAndWinningLine(
   state: State
 ): { outcome: BotOutcome[]; winningLine?: Move[] } | null {
   const topLeft: Move = { x: 0, y: 0 };

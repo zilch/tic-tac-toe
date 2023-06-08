@@ -7,6 +7,13 @@ import {
 } from "@babylonjs/core";
 import * as csx from "csx";
 
+export function stopAnimations(node: Node) {
+  node
+    .getScene()
+    .animatables.filter((animatable) => animatable.target === node)
+    .forEach((animatable) => animatable.stop());
+}
+
 export function toBabylonColor(colorValue: string) {
   const color = csx.color(colorValue);
   return new Color3(color.red() / 255, color.green() / 255, color.blue() / 255);
@@ -74,4 +81,10 @@ export function runAnimation(
       .getScene()
       .beginDirectAnimation(target, animations, 0, maxFrame, false, 1, resolve);
   });
+}
+
+export function addStyle(content: string) {
+  const style = document.createElement("style");
+  style.innerHTML = content;
+  document.head.appendChild(style);
 }

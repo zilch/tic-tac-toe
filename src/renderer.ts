@@ -14,12 +14,14 @@ import {
   SpotLight,
   Vector3,
   BackEase,
+  CubicEase,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
 import { runAnimation, toBabylonColor } from "./ui/utils";
 import { Camera } from "./ui/Camera";
 import { SymbolMaterial } from "./ui/SymbolMaterial";
 import { Ground } from "./ui/Ground";
+import { getOutcomeAndWinningLine } from "./play";
 
 Zilch.Renderer = class Renderer {
   engine: Engine;
@@ -45,7 +47,7 @@ Zilch.Renderer = class Renderer {
       this.engine.resize();
     }
 
-    this.camera?.update(current.status, current.view);
+    this.camera?.setStatus(current.status);
 
     if (current.botColors[0] !== previous?.botColors[0] && this.xMaterial) {
       this.xMaterial.updateColor(current.botColors[0]);
@@ -58,16 +60,46 @@ Zilch.Renderer = class Renderer {
     const currentBoard = this.getEffectiveBoard(current);
     const previousBoard = this.getEffectiveBoard(previous);
 
+    const currentWinningLine = this.getWinningLine(currentBoard);
+    const previousWinningLine = this.getWinningLine(previousBoard);
+
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
-        if (currentBoard[x][y] !== previousBoard[x][y]) {
-          this.positionBlock(x, y, currentBoard[x][y]);
+        const currentSpotEmphasis =
+          current.status === "done"
+            ? currentWinningLine.getSpotEmphasis(x, y)
+            : 0;
+        const previousSpotEmphasis =
+          previous?.status === "done"
+            ? previousWinningLine.getSpotEmphasis(x, y)
+            : 0;
+        if (
+          currentBoard[x][y] !== previousBoard[x][y] ||
+          currentSpotEmphasis !== previousSpotEmphasis
+        ) {
+          this.updateBlock(x, y, currentBoard[x][y], currentSpotEmphasis);
         }
       }
     }
   }
 
-  positionBlock(x: number, y: number, value: "x" | "o" | "empty") {
+  getWinningLine(board: ("empty" | "x" | "o")[][]) {
+    const winningLine = (
+      getOutcomeAndWinningLine({ board })?.winningLine ?? []
+    ).map((move) => `${move.x},${move.y}`);
+    return {
+      getSpotEmphasis(x: number, y: number) {
+        return winningLine.findIndex((value) => `${x},${y}` === value) + 1;
+      },
+    };
+  }
+
+  updateBlock(
+    x: number,
+    y: number,
+    value: "x" | "o" | "empty",
+    emphasisValue: number
+  ) {
     const block = this.scene?.getMeshByName(`block${x},${y}`);
     let targetRotation = 0;
     if (value === "x") {
@@ -83,9 +115,23 @@ Zilch.Renderer = class Renderer {
           { frame: 0, value: block?.rotation.z },
           { frame: 40, value: targetRotation },
         ],
-        easingFunction: new BackEase(),
+        easingFunction: value === "empty" ? new CubicEase() : new BackEase(),
       },
     ]);
+
+    setTimeout(() => {
+      runAnimation(block!, [
+        {
+          property: "position.y",
+          keys: [
+            { frame: 0, value: block?.position.y },
+            { frame: 55, value: emphasisValue > 0 ? 0.5 : 0 },
+          ],
+          easingFunction:
+            emphasisValue === 0 ? new CubicEase() : new BackEase(1.6),
+        },
+      ]);
+    }, emphasisValue * 100);
   }
 
   getEffectiveBoard(state: RenderState<State, Config> | null) {
@@ -167,16 +213,18 @@ Zilch.Renderer = class Renderer {
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
         if (x === 1 && y === 1) {
-          this.positionBlock(x, y, "empty");
+          this.updateBlock(x, y, "empty", 0);
           continue;
         }
 
         const mesh = blockMesh.createInstance(`block${x},${y}`);
         mesh.position.x = 3 * (x - 1);
         mesh.position.z = 3 * (y - 1);
+        mesh.scaling.z = Math.random() > 0.5 ? 1 : -1;
+        mesh.rotation.y = Math.random() > 0.5 ? 0 : Math.PI;
         instances.push(mesh);
 
-        this.positionBlock(x, y, "empty");
+        this.updateBlock(x, y, "empty", 0);
       }
     }
   }
@@ -184,11 +232,10 @@ Zilch.Renderer = class Renderer {
   createShadows() {
     const shadowGenerators: ShadowGenerator[] = [];
     this.scene!.lights.forEach((light) => {
-      light.intensity /= 230;
+      light.intensity /= 160;
       if (light instanceof SpotLight) {
-        const shadowGenerator = new ShadowGenerator(32, light, true);
+        const shadowGenerator = new ShadowGenerator(1024, light);
         shadowGenerator.usePercentageCloserFiltering = true;
-
         shadowGenerators.push(shadowGenerator);
       }
     });
