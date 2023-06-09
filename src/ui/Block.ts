@@ -15,7 +15,6 @@ const BAD_EMPHASIS_COLOR = toBabylonColor("#ff0000");
 
 export class Block {
   #node: TransformNode;
-  #timeoutId: number | null = null;
   #highlightMaterial: StandardMaterial;
 
   constructor(blockMesh: Mesh, oMesh: Mesh, xMesh: Mesh, x: number, y: number) {
@@ -51,10 +50,6 @@ export class Block {
   }
 
   update(value: "x" | "o" | "empty", emphasis: number) {
-    if (this.#timeoutId !== null) {
-      clearTimeout(this.#timeoutId);
-    }
-
     let targetRotation = 0;
 
     if (value === "x") {
@@ -76,10 +71,10 @@ export class Block {
     runAnimation(this.#node, [
       {
         property: "rotation.z",
-        keys: [
-          { frame: 0, value: this.#node.rotation.z },
-          { frame: 40, value: targetRotation },
-        ],
+        frames: {
+          0: this.#node.rotation.z,
+          40: targetRotation,
+        },
         easingFunction:
           value === "empty" && emphasis !== -1
             ? new CubicEase()
@@ -87,15 +82,11 @@ export class Block {
       },
     ]);
 
-    this.#timeoutId = setTimeout(() => {
-      this.#timeoutId = null;
+    setTimeout(() => {
       runAnimation(this.#node, [
         {
           property: "position.y",
-          keys: [
-            { frame: 0, value: this.#node.position.y },
-            { frame: 65, value: emphasis > 0 ? 0.3 : 0 },
-          ],
+          frames: { 0: this.#node.position.y, 65: emphasis > 0 ? 0.3 : 0 },
           easingFunction: emphasis < 1 ? new CubicEase() : new BackEase(4),
         },
       ]);
@@ -107,30 +98,19 @@ export class Block {
         ...(["r", "g", "b"] as const).map((color) => {
           return {
             property: "emissiveColor." + color,
-            keys: [
-              {
-                frame: 0,
-                value: this.#highlightMaterial.emissiveColor[color],
-              },
-              {
-                frame: 40,
-                value: targetColor[color],
-              },
-            ],
+            frames: {
+              0: this.#highlightMaterial.emissiveColor[color],
+              40: targetColor[color],
+            },
           };
         }),
         {
           property: "alpha",
-          keys: [
-            {
-              frame: 0,
-              value: this.#highlightMaterial.alpha,
-            },
-            {
-              frame: emphasis > 0 ? 65 : 40,
-              value: emphasis > 0 ? 0.02 : emphasis < 0 ? 0.1 : 0,
-            },
-          ],
+          frames: {
+            0: this.#highlightMaterial.alpha,
+            [emphasis > 0 ? 65 : 40]:
+              emphasis > 0 ? 0.02 : emphasis < 0 ? 0.1 : 0,
+          },
           easingFunction:
             emphasis === 0
               ? new SineEase()

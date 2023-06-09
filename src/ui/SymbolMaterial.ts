@@ -18,10 +18,10 @@ export class SymbolMaterial {
       (["r", "g", "b"] as const).map((c) => {
         return {
           property: "albedoColor." + c,
-          keys: [
-            { frame: 0, value: this.material.albedoColor[c] },
-            { frame: 16, value: newColor[c] },
-          ],
+          frames: {
+            0: this.material.albedoColor[c],
+            16: newColor[c],
+          },
         };
       })
     );

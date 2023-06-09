@@ -42,10 +42,10 @@ export class Camera {
     runAnimation(this.#camera, [
       {
         property: "radius",
-        keys: [
-          { frame: 0, value: this.#camera.radius },
-          { frame: 90, value: 18 },
-        ],
+        frames: {
+          0: this.#camera.radius,
+          90: 18,
+        },
         easingFunction: new BackEase(),
         easingMode: "out",
       },
@@ -114,24 +114,18 @@ export class Camera {
     runAnimation(this.#camera, [
       {
         property: "alpha",
-        keys: [
-          { frame: 0, value: this.#camera.alpha },
-          {
-            frame: 30,
-            value: alpha,
-          },
-        ],
+        frames: {
+          0: this.#camera.alpha,
+          30: alpha,
+        },
         easingFunction: new CubicEase(),
       },
       {
         property: "beta",
-        keys: [
-          { frame: 0, value: this.#camera.beta },
-          {
-            frame: 30,
-            value: beta,
-          },
-        ],
+        frames: {
+          0: this.#camera.beta,
+          30: beta,
+        },
         easingFunction: new CubicEase(),
       },
     ]);

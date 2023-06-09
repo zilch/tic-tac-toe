@@ -29,53 +29,55 @@ export function runAnimation(
   target: Node | Material,
   animationData: {
     property: string;
-    keys: {
-      frame: number;
-      value: unknown;
-    }[];
+    frames: { [frame: number]: unknown };
     easingFunction?: EasingFunction;
     easingMode?: "inout" | "in" | "out";
-  }[],
-  options: {
-    maxFrame?: number;
-    easingFunction?: EasingFunction;
-    easingMode?: "inout" | "in" | "out";
-  } = {}
+  }[]
 ) {
   return new Promise<void>((resolve) => {
     const animations = animationData.map((data) => {
+      target.animations
+        ?.filter((animation) => animation.targetProperty === data.property)
+        .forEach((animation) => {
+          target.getScene().stopAnimation(target, animation.name);
+        });
+
       const animation = new Animation(
-        "animation",
+        target.name + "." + data.property + "." + crypto.randomUUID(),
         data.property,
         60,
-        typeof data.keys[0].value === "number"
-          ? Animation.ANIMATIONTYPE_FLOAT
-          : Animation.ANIMATIONTYPE_VECTOR3
+        Animation.ANIMATIONTYPE_FLOAT
       );
-      animation.setKeys(data.keys);
 
-      const easingFunction = data.easingFunction ?? options.easingFunction;
+      const keys = Object.entries(data.frames).map(([frame, value]) => {
+        return {
+          frame: parseInt(frame),
+          value,
+        };
+      });
 
-      if (easingFunction) {
-        easingFunction.setEasingMode(
+      animation.setKeys(keys);
+
+      if (data.easingFunction) {
+        data.easingFunction.setEasingMode(
           {
             in: EasingFunction.EASINGMODE_EASEIN,
             out: EasingFunction.EASINGMODE_EASEOUT,
             inout: EasingFunction.EASINGMODE_EASEINOUT,
-          }[data.easingMode ?? options.easingMode ?? "inout"]
+          }[data.easingMode ?? "inout"]
         );
 
-        animation.setEasingFunction(easingFunction);
+        animation.setEasingFunction(data.easingFunction);
       }
 
       return animation;
     });
 
-    const maxFrame =
-      options.maxFrame ??
-      Math.max(
-        ...animationData.flatMap(({ keys }) => keys.map((key) => key.frame))
-      );
+    const maxFrame = Math.max(
+      ...animationData.flatMap(({ frames }) =>
+        Object.keys(frames).map((frame) => parseInt(frame))
+      )
+    );
 
     target
       .getScene()
