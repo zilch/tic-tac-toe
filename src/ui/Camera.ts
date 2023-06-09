@@ -14,7 +14,7 @@ import {
   stopAnimations,
 } from "./utils";
 
-const INITIAL_ALPHA = Math.PI * 2.65;
+const INITIAL_ALPHA = Math.PI * 2.4;
 const INITIAL_BETA = Math.PI * 0.26;
 
 export class Camera {

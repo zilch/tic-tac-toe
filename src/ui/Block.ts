@@ -19,8 +19,8 @@ export class Block {
 
   constructor(blockMesh: Mesh, oMesh: Mesh, xMesh: Mesh, x: number, y: number) {
     this.#node = new TransformNode(`transformNode${x},${y}`);
-    this.#node.position.x = 3 * (y - 1);
-    this.#node.position.z = 3 * (1 - x);
+    this.#node.position.x = 3 * (1 - x);
+    this.#node.position.z = 3 * (1 - y);
     this.#node.scaling.z = Math.random() > 0.5 ? 1 : -1;
     this.#node.rotation = new Vector3(
       0,
