@@ -1,11 +1,9 @@
 import {
-  Engine,
   ArcRotateCamera,
   Scene,
   Vector3,
   PointerEventTypes,
   CubicEase,
-  DefaultRenderingPipeline,
   BackEase,
 } from "@babylonjs/core";
 import { GameStatus } from "zilch-game-engine";

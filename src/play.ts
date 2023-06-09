@@ -12,6 +12,7 @@ Zilch.play = async function* (game) {
 
   const state: State = {
     board: game.config.initialBoard,
+    errorEmphasisSpot: null,
   };
 
   const outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
@@ -36,6 +37,8 @@ Zilch.play = async function* (game) {
       bot.writeln(
         chalk.red(`\nSpot { x: ${move.x}, y: ${move.y} } already occupied.`)
       );
+
+      state.errorEmphasisSpot = move;
 
       yield {
         outcome: [

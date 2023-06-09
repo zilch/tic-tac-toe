@@ -95,12 +95,15 @@ Zilch.Renderer = class Renderer {
       for (let y = 0; y < 3; y++) {
         const currentSpotEmphasis =
           current.status === "done"
-            ? currentWinningLine.getSpotEmphasis(x, y)
+            ? currentWinningLine.getSpotEmphasis(x, y) ||
+              this.#getErrorEmphasis(current, x, y)
             : 0;
         const previousSpotEmphasis =
           previous?.status === "done"
-            ? previousWinningLine.getSpotEmphasis(x, y)
+            ? previousWinningLine.getSpotEmphasis(x, y) ||
+              this.#getErrorEmphasis(previous, x, y)
             : 0;
+
         if (
           currentBoard[x][y] !== previousBoard[x][y] ||
           currentSpotEmphasis !== previousSpotEmphasis
@@ -115,13 +118,29 @@ Zilch.Renderer = class Renderer {
 
   #getWinningLine(board: ("empty" | "x" | "o")[][]) {
     const winningLine = (
-      getOutcomeAndWinningLine({ board })?.winningLine ?? []
+      getOutcomeAndWinningLine({ board, errorEmphasisSpot: null })
+        ?.winningLine ?? []
     ).map((move) => `${move.x},${move.y}`);
     return {
       getSpotEmphasis(x: number, y: number) {
         return winningLine.findIndex((value) => `${x},${y}` === value) + 1;
       },
     };
+  }
+
+  #getErrorEmphasis(
+    state: RenderState<State, Config> | null,
+    x: number,
+    y: number
+  ) {
+    if (
+      state?.state?.errorEmphasisSpot?.x === x &&
+      state.state.errorEmphasisSpot.y === y
+    ) {
+      return -1;
+    } else {
+      return 0;
+    }
   }
 
   #getEffectiveBoard(state: RenderState<State, Config> | null) {

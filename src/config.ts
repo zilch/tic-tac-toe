@@ -12,6 +12,7 @@ export interface Config {
 }
 
 export interface State {
+  errorEmphasisSpot: { x: number; y: number } | null;
   board: ("x" | "o" | "empty")[][];
 }
 

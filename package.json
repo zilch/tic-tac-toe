@@ -11,6 +11,6 @@
     "csx": "^10.0.2",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
-    "zilch-game-engine": "^0.0.17"
+    "zilch-game-engine": "https://play.zilch.local/zilch-game-engine/package.tgz"
   }
 }
