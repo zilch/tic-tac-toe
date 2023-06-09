@@ -45,7 +45,7 @@ export class Block {
       `HighlightMaterial${x},${y}`
     );
     this.#highlightMaterial.alpha = 0;
-    this.#highlightMaterial.emissiveColor = GOOD_EMPHASIS_COLOR;
+    this.#highlightMaterial.emissiveColor = GOOD_EMPHASIS_COLOR.clone();
     highlightMesh.material = this.#highlightMaterial;
   }
 
@@ -82,41 +82,44 @@ export class Block {
       },
     ]);
 
-    setTimeout(() => {
-      runAnimation(this.#node, [
-        {
-          property: "position.y",
-          frames: { 0: this.#node.position.y, 65: emphasis > 0 ? 0.3 : 0 },
-          easingFunction: emphasis < 1 ? new CubicEase() : new BackEase(4),
-        },
-      ]);
+    const delay = Math.abs(emphasis) * 5;
 
-      const targetColor =
-        emphasis === -1 ? BAD_EMPHASIS_COLOR : GOOD_EMPHASIS_COLOR;
+    runAnimation(this.#node, [
+      {
+        property: "position.y",
+        frames: { 0: this.#node.position.y, 65: emphasis > 0 ? 0.3 : 0 },
+        easingFunction: emphasis < 1 ? new CubicEase() : new BackEase(4),
+        delay,
+      },
+    ]);
 
-      runAnimation(this.#highlightMaterial, [
-        ...(["r", "g", "b"] as const).map((color) => {
-          return {
-            property: "emissiveColor." + color,
-            frames: {
-              0: this.#highlightMaterial.emissiveColor[color],
-              40: targetColor[color],
-            },
-          };
-        }),
-        {
-          property: "alpha",
+    const targetColor =
+      emphasis === -1
+        ? BAD_EMPHASIS_COLOR.clone()
+        : GOOD_EMPHASIS_COLOR.clone();
+
+    runAnimation(this.#highlightMaterial, [
+      ...(["r", "g", "b"] as const).map((color) => {
+        return {
+          property: "emissiveColor." + color,
           frames: {
-            0: this.#highlightMaterial.alpha,
-            [emphasis > 0 ? 65 : 40]:
-              emphasis > 0 ? 0.02 : emphasis < 0 ? 0.1 : 0,
+            0: this.#highlightMaterial.emissiveColor[color],
+            40: targetColor[color],
           },
-          easingFunction:
-            emphasis === 0
-              ? new SineEase()
-              : new BackEase(emphasis > 0 ? 13 : 2),
+          delay,
+        };
+      }),
+      {
+        property: "alpha",
+        frames: {
+          0: this.#highlightMaterial.alpha,
+          [emphasis > 0 ? 65 : 40]:
+            emphasis > 0 ? 0.02 : emphasis < 0 ? 0.1 : 0,
         },
-      ]);
-    }, Math.abs(emphasis) * 80);
+        easingFunction:
+          emphasis === 0 ? new SineEase() : new BackEase(emphasis > 0 ? 13 : 2),
+        delay,
+      },
+    ]);
   }
 }

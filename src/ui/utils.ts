@@ -32,6 +32,7 @@ export function runAnimation(
     frames: { [frame: number]: unknown };
     easingFunction?: EasingFunction;
     easingMode?: "inout" | "in" | "out";
+    delay?: number;
   }[]
 ) {
   return new Promise<void>((resolve) => {
@@ -43,18 +44,32 @@ export function runAnimation(
         });
 
       const animation = new Animation(
-        target.name + "." + data.property + "." + crypto.randomUUID(),
+        target.name + "." + data.property + "." + target.uniqueId,
         data.property,
         60,
         Animation.ANIMATIONTYPE_FLOAT
       );
 
+      let minFrame = Infinity;
+
       const keys = Object.entries(data.frames).map(([frame, value]) => {
+        const frameWithDelay = parseInt(frame) + (data.delay ?? 0);
+        if (frameWithDelay < minFrame) {
+          minFrame = frameWithDelay;
+        }
         return {
-          frame: parseInt(frame),
+          frame: frameWithDelay,
           value,
         };
       });
+
+      const firstValue = keys.find((key) => key.frame === minFrame)?.value;
+      if ((data.delay ?? 0) > 0 && firstValue !== undefined) {
+        keys.unshift({
+          frame: 0,
+          value: firstValue,
+        });
+      }
 
       animation.setKeys(keys);
 
@@ -74,8 +89,8 @@ export function runAnimation(
     });
 
     const maxFrame = Math.max(
-      ...animationData.flatMap(({ frames }) =>
-        Object.keys(frames).map((frame) => parseInt(frame))
+      ...animationData.flatMap(({ frames, delay }) =>
+        Object.keys(frames).map((frame) => parseInt(frame) + (delay ?? 0))
       )
     );
 
