@@ -10,7 +10,7 @@
     "move": 100,
     "game": null
   },
-  "moveDelay": 1500,
+  "moveDelay": 600,
   "templates": [
     "javascript.node"
   ]
