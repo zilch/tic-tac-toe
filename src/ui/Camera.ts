@@ -5,6 +5,8 @@ import {
   Vector3,
   PointerEventTypes,
   CubicEase,
+  DefaultRenderingPipeline,
+  BackEase,
 } from "@babylonjs/core";
 import { GameStatus } from "zilch-game-engine";
 import {
@@ -14,11 +16,6 @@ import {
   stopAnimations,
 } from "./utils";
 
-interface CameraState {
-  topView: boolean;
-  status: GameStatus;
-}
-
 const INITIAL_ALPHA = Math.PI * 2.65;
 const INITIAL_BETA = Math.PI * 0.26;
 
@@ -27,23 +24,34 @@ export class Camera {
   #topView = false;
   #status: GameStatus = "not-started";
 
-  constructor(private engine: Engine, scene: Scene) {
-    const zoomRadius = 18;
+  constructor(scene: Scene) {
     this.#camera = new ArcRotateCamera(
       "camera",
       INITIAL_ALPHA,
       INITIAL_BETA,
-      zoomRadius,
+      22,
       new Vector3(0, -1, 0),
       scene
     );
 
-    this.#camera.radius = zoomRadius;
-    this.#camera.lowerRadiusLimit = zoomRadius;
-    this.#camera.upperRadiusLimit = zoomRadius;
+    this.#camera.lowerRadiusLimit = 14;
+    this.#camera.upperRadiusLimit = 24;
+    this.#camera.panningSensibility = 0;
     this.#camera.upperBetaLimit = Math.PI * 0.4;
     this.#camera.useAutoRotationBehavior = true;
     this.#camera.attachControl();
+
+    runAnimation(this.#camera, [
+      {
+        property: "radius",
+        keys: [
+          { frame: 0, value: this.#camera.radius },
+          { frame: 90, value: 18 },
+        ],
+        easingFunction: new BackEase(),
+        easingMode: "out",
+      },
+    ]);
 
     addStyle(`
       canvas {
@@ -66,7 +74,7 @@ export class Camera {
       if (event.type === PointerEventTypes.POINTERUP) {
         canvas.classList.remove("moving");
 
-        this.#topView = this.#camera.beta < 0.15;
+        this.#topView = this.#camera.beta < 0.3;
 
         if (this.#topView) {
           this.#camera.useAutoRotationBehavior = false;

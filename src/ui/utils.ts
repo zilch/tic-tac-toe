@@ -21,7 +21,7 @@ export function toBabylonColor(colorValue: string) {
 
 export function getNearestStep(target: number, current: number, step: number) {
   const diff = target - current;
-  const stepCount = Math.floor(Math.abs(diff) / step);
+  const stepCount = Math.round(Math.abs(diff) / step);
   return target + (diff > 0 ? step * -stepCount : step * stepCount);
 }
 
