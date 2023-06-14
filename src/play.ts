@@ -1,6 +1,6 @@
-import { BotOutcome, Engine, Game } from "zilch-game-engine";
+import { BotOutcome } from "zilch-game-engine";
 import chalk from "chalk";
-import { Config, State } from "./config";
+import { State } from "./config";
 
 interface Move {
   x: number;
@@ -107,7 +107,7 @@ export function getOutcomeAndWinningLine(
   for (const player of ["x", "o"] as const) {
     const winningLine = winningLines.find((line) =>
       line.every((position) => {
-        let value = state.board[position.x]?.[position.y];
+        const value = state.board[position.x]?.[position.y];
         if (value === "empty") {
           return false;
         }
