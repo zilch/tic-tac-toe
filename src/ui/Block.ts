@@ -8,7 +8,12 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
-import { getNearestStep, runAnimation, toBabylonColor } from "./utils";
+import {
+  getNearestStep,
+  runAnimation,
+  stopAnimations,
+  toBabylonColor,
+} from "./utils";
 
 const GOOD_EMPHASIS_COLOR = toBabylonColor("rgb(243,191,123)");
 const BAD_EMPHASIS_COLOR = toBabylonColor("#ff0000");
@@ -50,6 +55,9 @@ export class Block {
   }
 
   update(value: "x" | "o" | "empty", emphasis: number) {
+    stopAnimations(this.#node);
+    stopAnimations(this.#highlightMaterial);
+
     let targetRotation = 0;
 
     if (value === "x") {
@@ -88,7 +96,10 @@ export class Block {
       {
         property: "position.y",
         frames: { 0: this.#node.position.y, 65: emphasis > 0 ? 0.3 : 0 },
-        easingFunction: emphasis < 1 ? new CubicEase() : new BackEase(4),
+        easingFunction:
+          emphasis < 1 || this.#node.position.y !== 0
+            ? new CubicEase()
+            : new BackEase(4),
         delay,
       },
     ]);
@@ -117,7 +128,9 @@ export class Block {
             emphasis > 0 ? 0.02 : emphasis < 0 ? 0.1 : 0,
         },
         easingFunction:
-          emphasis === 0 ? new SineEase() : new BackEase(emphasis > 0 ? 13 : 2),
+          emphasis === 0 || this.#highlightMaterial.alpha !== 0
+            ? new SineEase()
+            : new BackEase(emphasis > 0 ? 13 : 2),
         delay,
       },
     ]);

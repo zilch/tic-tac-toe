@@ -5,6 +5,7 @@ import {
   PointerEventTypes,
   CubicEase,
   BackEase,
+  KeyboardEventTypes,
 } from "@babylonjs/core";
 import { GameStatus } from "zilch-game-engine";
 import {
@@ -63,6 +64,30 @@ export class Camera {
 
     const canvas = document.querySelector("canvas")!;
 
+    const updateTopView = () => {
+      this.#topView = this.#camera.beta < 0.3;
+
+      if (this.#topView) {
+        this.#camera.useAutoRotationBehavior = false;
+        this.#animateTo(
+          getNearestStep(Math.PI, this.#camera.alpha, Math.PI / 2),
+          0
+        );
+      } else if (this.#status === "not-started") {
+        this.#camera.useAutoRotationBehavior = true;
+      }
+    };
+
+    scene.onKeyboardObservable.add((event) => {
+      if (event.type === KeyboardEventTypes.KEYDOWN) {
+        stopAnimations(this.#camera);
+      }
+
+      if (event.type === KeyboardEventTypes.KEYUP) {
+        updateTopView();
+      }
+    });
+
     scene.onPointerObservable.add((event) => {
       if (event.type === PointerEventTypes.POINTERDOWN) {
         canvas.classList.add("moving");
@@ -71,18 +96,7 @@ export class Camera {
 
       if (event.type === PointerEventTypes.POINTERUP) {
         canvas.classList.remove("moving");
-
-        this.#topView = this.#camera.beta < 0.3;
-
-        if (this.#topView) {
-          this.#camera.useAutoRotationBehavior = false;
-          this.#animateTo(
-            getNearestStep(Math.PI, this.#camera.alpha, Math.PI / 2),
-            0
-          );
-        } else if (this.#status === "not-started") {
-          this.#camera.useAutoRotationBehavior = true;
-        }
+        updateTopView();
       }
     });
   }

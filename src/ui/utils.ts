@@ -7,7 +7,7 @@ import {
 } from "@babylonjs/core";
 import * as csx from "csx";
 
-export function stopAnimations(node: Node) {
+export function stopAnimations(node: Node | Material) {
   node
     .getScene()
     .animatables.filter((animatable) => animatable.target === node)
