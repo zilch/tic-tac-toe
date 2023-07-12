@@ -208,7 +208,7 @@ Zilch.Renderer = class Renderer {
   #createShadows() {
     const shadowGenerators: ShadowGenerator[] = [];
     this.#scene.lights.forEach((light) => {
-      light.intensity /= 150;
+      light.intensity /= 170;
       if (light instanceof SpotLight) {
         const shadowGenerator = new ShadowGenerator(1024, light);
         shadowGenerator.usePercentageCloserFiltering = true;

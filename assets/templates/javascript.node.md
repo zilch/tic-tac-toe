@@ -2,10 +2,6 @@
 node main.js
 ```
 
-```sh config=build
-node main.js
-```
-
 ```js file=/bot.js
 class Bot {
   constructor(config) {
@@ -27,6 +23,10 @@ class Bot {
     }
 
     return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+  }
+
+  end() {
+    console.log("Good game!");
   }
 }
 
@@ -73,6 +73,12 @@ process.stdin.on("data", async (data) => {
       payload.split("|").map((row) => row.split(","))
     );
     process.stderr.write(`<<zilch:move${move.x},${move.y}>>`);
+    return;
+  }
+
+  // "e" for "end"
+  if (command === "e") {
+    await bot.end(payload.split("|").map((row) => row.split(",")));
     return;
   }
 });

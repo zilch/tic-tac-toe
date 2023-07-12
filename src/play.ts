@@ -33,6 +33,8 @@ Zilch.play = async function* (game) {
 
     const spotValue = state.board[move.x][move.y];
 
+    let outcome: BotOutcome[] | null = null;
+
     if (spotValue !== "empty") {
       bot.writeln(
         chalk.red(`\nSpot { x: ${move.x}, y: ${move.y} } already occupied.`)
@@ -40,19 +42,22 @@ Zilch.play = async function* (game) {
 
       state.errorEmphasisSpot = move;
 
-      yield {
-        outcome: [
-          botIndex === 0 ? BotOutcome.Error : BotOutcome.None,
-          botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
-        ],
-        state,
-      };
+      outcome = [
+        botIndex === 0 ? BotOutcome.Error : BotOutcome.None,
+        botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
+      ];
     } else {
       state.board[move.x][move.y] = turn % 2 === 0 ? "x" : "o";
-      const outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
-
-      yield { state, outcome };
+      outcome = getOutcomeAndWinningLine(state)?.outcome ?? null;
     }
+
+    if (outcome !== null) {
+      await Promise.all(
+        game.bots.map((bot) => bot.end(createMovePayload(state)))
+      );
+    }
+
+    yield { state, outcome };
 
     turn++;
   }

@@ -1,13 +1,13 @@
-import type { CreateBotParams } from "zilch-game-engine";
+import type { StartBotParams } from "zilch-game-engine";
 
 Zilch.Bot = class Bot {
-  params: CreateBotParams;
+  params: StartBotParams;
 
-  constructor(params: CreateBotParams) {
+  constructor(params: StartBotParams) {
     this.params = params;
   }
 
-  static create(params: CreateBotParams) {
+  static start(params: StartBotParams) {
     return new Bot(params);
   }
 
@@ -16,4 +16,6 @@ Zilch.Bot = class Bot {
     // could just copy/paste the boss bot's code!
     return "no-op";
   }
+
+  end(payload: string) {}
 };
