@@ -2,38 +2,20 @@
 node main.js
 ```
 
-```js file=/bot.js
-class Bot {
-  constructor(config) {
-    this.config = config;
-    console.log("Hello world", this.config);
-  }
-
-  move(board) {
-    console.log(board);
-
-    const availableSpots = [];
-
-    for (let x = 0; x < 3; x++) {
-      for (let y = 0; y < 3; y++) {
-        if (board[x][y] === "empty") {
-          availableSpots.push({ x, y });
-        }
-      }
+```json file=/.devcontainer.json hidden=true
+{
+  "name": "Zilch Bot",
+  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:18",
+  "postStartCommand": "./connect --welcome",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["bot.js"]
     }
-
-    return availableSpots[Math.floor(Math.random() * availableSpots.length)];
-  }
-
-  end() {
-    console.log("Good game!");
   }
 }
-
-module.exports.Bot = Bot;
 ```
 
-```js file=/main.js
+```js file=/main.js hidden=true
 const { Bot } = require("./bot");
 
 let bot;
@@ -84,4 +66,24 @@ process.stdin.on("data", async (data) => {
 });
 
 process.stderr.write("<<zilch:ready>>");
+```
+
+```js file=/bot.js
+class Bot {
+  constructor(config) {
+    this.config = config;
+    console.log("Hello world", this.config);
+  }
+
+  move(board) {
+    console.log(board);
+    return { x: 0, y: 0 };
+  }
+
+  end() {
+    console.log("Good game!");
+  }
+}
+
+module.exports.Bot = Bot;
 ```
