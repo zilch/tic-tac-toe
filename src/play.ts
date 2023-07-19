@@ -29,6 +29,19 @@ Zilch.play = async function* (game) {
 
     bot.writeln(chalk.dim(`Start turn`));
     const move = await bot.move(payload).then(parseMoveResponse);
+
+    if (move instanceof Error) {
+      bot.writeln(chalk.red(`Unable to parse move. ${move.message}`));
+      yield {
+        outcome: [
+          botIndex === 0 ? BotOutcome.Error : BotOutcome.None,
+          botIndex === 1 ? BotOutcome.Error : BotOutcome.None,
+        ],
+        state,
+      };
+      continue;
+    }
+
     bot.writeln(chalk.dim(`⤷ x=${move.x} y=${move.y}`));
 
     const spotValue = state.board[move.x][move.y];
@@ -63,7 +76,7 @@ Zilch.play = async function* (game) {
   }
 };
 
-function parseMoveResponse(response: string): Move {
+function parseMoveResponse(response: string): Move | Error {
   const [x, y] = response.split(",").map((value) => {
     if (/(0|1|2)/.test(value)) {
       return parseInt(value);
@@ -71,7 +84,7 @@ function parseMoveResponse(response: string): Move {
   });
 
   if (x === undefined || y === undefined) {
-    throw new Error(`Response invalid: "${response}"`);
+    return new Error(`Move invalid: "${response}"`);
   }
 
   return { x, y };
