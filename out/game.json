@@ -12,6 +12,7 @@
   },
   "moveDelay": 600,
   "templates": [
-    "javascript.node"
+    "javascript.node",
+    "python.3"
   ]
 }
