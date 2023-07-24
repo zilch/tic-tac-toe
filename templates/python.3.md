@@ -6,7 +6,7 @@ python3 -u ./main.py
 {
   "name": "Zilch Bot",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "postAttachCommand": "./connect --welcome",
+  "postCreateCommand": "./connect --welcome",
   "customizations": {
     "codespaces": {
       "openFiles": ["bot.py"]
@@ -90,6 +90,7 @@ while True:
 ```
 
 ```py file=/bot.py
+# 👉 Run "./connect" in the terminal to get started
 class Bot:
     def __init__(self, config):
         print("Hello World!", config)

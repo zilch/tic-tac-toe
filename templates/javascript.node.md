@@ -6,7 +6,7 @@ node main.js
 {
   "name": "Zilch Bot",
   "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:18",
-  "postAttachCommand": "./connect --welcome",
+  "postCreateCommand": "./connect --welcome",
   "customizations": {
     "codespaces": {
       "openFiles": ["bot.js"]
@@ -104,6 +104,7 @@ send("ready");
 ```
 
 ```js file=/bot.js
+// 👉 Run "./connect" in the terminal to get started
 class Bot {
   constructor(config) {
     this.config = config;
