@@ -6,7 +6,7 @@ python3 -u ./main.py
 {
   "name": "Zilch Bot",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "postCreateCommand": "./connect --welcome",
+  "postAttachCommand": "./connect --welcome",
   "customizations": {
     "codespaces": {
       "openFiles": ["bot.py"]

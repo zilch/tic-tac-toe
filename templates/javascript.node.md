@@ -6,7 +6,7 @@ node main.js
 {
   "name": "Zilch Bot",
   "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:18",
-  "postCreateCommand": "./connect --welcome",
+  "postAttachCommand": "./connect --welcome",
   "customizations": {
     "codespaces": {
       "openFiles": ["bot.js"]
