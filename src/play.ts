@@ -1,6 +1,8 @@
 import { BotOutcome } from "zilch-game-engine";
-import chalk from "chalk";
+import { Chalk } from "chalk";
 import { State } from "./config";
+
+const chalk = new Chalk({ level: 3 });
 
 interface Move {
   x: number;
