@@ -104,7 +104,8 @@ send("ready");
 ```
 
 ```js file=/bot.js
-// 👉 Run "./connect" in the terminal to get started
+// 👉 Run "./connect" (or "connect.cmd" on Windows) in the terminal to get started
+
 class Bot {
   constructor(config) {
     this.config = config;
