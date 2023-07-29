@@ -9,6 +9,7 @@ import {
   Vector3,
 } from "@babylonjs/core";
 import {
+  applyMeshPerfFlags,
   getNearestStep,
   runAnimation,
   stopAnimations,
@@ -33,15 +34,19 @@ export class Block {
       (2 * Math.PI) / 3
     );
 
-    blockMesh.createInstance(`BlockMesh${x},${y}`).parent = this.#node;
-    xMesh.createInstance(`OMesh${x},${y}`).parent = this.#node;
-    oMesh.createInstance(`OMesh${x},${y}`).parent = this.#node;
+    applyMeshPerfFlags(blockMesh.createInstance(`BlockMesh${x},${y}`)).parent =
+      this.#node;
+    applyMeshPerfFlags(xMesh.createInstance(`OMesh${x},${y}`)).parent =
+      this.#node;
+    applyMeshPerfFlags(oMesh.createInstance(`OMesh${x},${y}`)).parent =
+      this.#node;
 
     const highlightMesh = MeshBuilder.CreateCylinder(`HighlightMesh${x},${y}`, {
       height: 2.1,
       tessellation: 3,
       diameter: 2.4,
     });
+    applyMeshPerfFlags(highlightMesh);
     highlightMesh.rotation.z = -Math.PI / 2;
     highlightMesh.rotation.y = Math.PI / 2;
     highlightMesh.parent = this.#node;

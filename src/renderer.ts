@@ -5,13 +5,12 @@ import {
   Mesh,
   Scene,
   SceneLoader,
-  ScenePerformancePriority,
   ShadowGenerator,
   SpotLight,
   GlowLayer,
 } from "@babylonjs/core";
 import "@babylonjs/loaders";
-import { toBabylonColor } from "./ui/utils";
+import { applyMeshPerfFlags, toBabylonColor } from "./ui/utils";
 import { Camera } from "./ui/Camera";
 import { SymbolMaterial } from "./ui/SymbolMaterial";
 import { Ground } from "./ui/Ground";
@@ -32,7 +31,13 @@ Zilch.Renderer = class Renderer {
     this.#engine = engine;
     this.#scene = scene;
 
-    scene.performancePriority = ScenePerformancePriority.Intermediate;
+    scene.autoClear = false;
+    scene.autoClearDepthAndStencil = false;
+    scene.skipPointerMovePicking = true;
+    scene.skipPointerDownPicking = true;
+    scene.skipPointerUpPicking = true;
+    scene.skipFrustumClipping = true;
+    scene.renderingManager.maintainStateBetweenFrames = true;
     scene.clearColor = toBabylonColor("#2F343C").toColor4().toLinearSpace();
 
     this.#camera = new Camera(scene);
@@ -160,6 +165,8 @@ Zilch.Renderer = class Renderer {
     let blockMesh: Mesh | undefined;
 
     this.#scene.meshes.forEach((mesh) => {
+      applyMeshPerfFlags(mesh);
+
       if (mesh instanceof Mesh) {
         if (mesh.name === "OMesh") {
           oMesh = mesh;

@@ -4,6 +4,7 @@ import {
   Animation,
   Node,
   Color3,
+  AbstractMesh,
 } from "@babylonjs/core";
 import * as csx from "csx";
 
@@ -12,6 +13,13 @@ export function stopAnimations(node: Node | Material) {
     .getScene()
     .animatables.filter((animatable) => animatable.target === node)
     .forEach((animatable) => animatable.stop());
+}
+
+export function applyMeshPerfFlags<T extends AbstractMesh>(mesh: T) {
+  mesh.isPickable = false;
+  mesh.doNotSyncBoundingInfo = true;
+  mesh.alwaysSelectAsActiveMesh = true;
+  return mesh;
 }
 
 export function toBabylonColor(colorValue: string) {
