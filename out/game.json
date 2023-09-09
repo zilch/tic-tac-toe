@@ -2,8 +2,8 @@
   "name": "Tic-Tac-Toe",
   "v": 1,
   "slots": [
-    "Player One · X",
-    "Player Two · O"
+    "Player X",
+    "Player O"
   ],
   "minSlots": 2,
   "defaultTimeLimitMilliseconds": {
