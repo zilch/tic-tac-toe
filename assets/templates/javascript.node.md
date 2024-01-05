@@ -2,20 +2,7 @@
 node main.js
 ```
 
-```json file=/.devcontainer.json hidden=true
-{
-  "name": "Zilch Bot",
-  "image": "mcr.microsoft.com/vscode/devcontainers/javascript-node:18",
-  "postAttachCommand": "./connect --welcome",
-  "customizations": {
-    "codespaces": {
-      "openFiles": ["bot.js"]
-    }
-  }
-}
-```
-
-```md file=/README.md hidden=true
+```md file=/README.md
 Check if you have Node.js installed on your system like this:
 
 \`\`\`
@@ -32,32 +19,22 @@ bot directory to play.
 // ⚠️ Only modify this file if you know what you're doing!
 const { Bot } = require("./bot");
 
-function send(channel, botInstanceId, payload) {
-  let message = `\n<<zilch>>.${channel}`;
-
-  if (botInstanceId) {
-    message += "." + botInstanceId;
-  }
-
-  if (payload) {
-    message += "." + payload;
-  }
-
-  message += "\n";
-
-  process.stderr.write(message);
+function send(channel, payload) {
+  process.stderr.write(
+    `\n<<zilch>>.${channel}${payload ? "." + payload : ""}\n`
+  );
 }
 
 function parseBoard(board) {
   return board.split("|").map((row) => row.split(","));
 }
 
-const bots = new Map();
+let bot;
 
 process.stdin.on("data", async (chunk) => {
   const data = chunk.toString().trim();
-  const [channel, botInstanceId] = data.split(".", 2);
-  const payload = data.slice(channel.length + botInstanceId.length + 2);
+  const channel = data.split(".", 1)[0];
+  const payload = data.slice(channel.length + 1);
 
   if (channel === "start") {
     const standardCustomConfigSplit = payload.indexOf(".");
@@ -66,7 +43,6 @@ process.stdin.on("data", async (chunk) => {
       .split(",");
 
     const config = {
-      botInstanceId,
       gameTimeLimit: parseInt(standardConfigParts[0]),
       turnTimeLimit: parseInt(standardConfigParts[1]),
       player: standardConfigParts[2] === "0" ? "x" : "o",
@@ -75,7 +51,7 @@ process.stdin.on("data", async (chunk) => {
       ),
     };
 
-    bots.set(botInstanceId, new Bot(config));
+    bot = new Bot(config);
 
     send("start", botInstanceId);
     return;
@@ -84,18 +60,17 @@ process.stdin.on("data", async (chunk) => {
   const bot = bots.get(botInstanceId);
 
   if (!bot) {
-    throw new Error("No bot runner with id " + botInstanceId);
+    throw new Error("Bot not yet initialized.");
   }
 
   if (channel === "move") {
-    const move = await bot.move(parseBoard(payload));
-    send("move", botInstanceId, `${move.x},${move.y}`);
+    const move = await bot.move(...parseBoard(payload));
+    send("move", `${move.x},${move.y}`);
     return;
   }
 
   if (channel === "end") {
     await bot.end(parseBoard(payload));
-    bots.delete(botInstanceId);
     return;
   }
 });
@@ -104,7 +79,9 @@ send("ready");
 ```
 
 ```js file=/bot.js
-// 👉 Run "./connect" (or "connect.cmd" on Windows) in the terminal to get started
+// 👋 Hello there! This file contains ready-to-edit bot code.
+// 🟢 Open "README.md" for instructions on how to get started!
+// TL;DR Run ./connect (or .\connect.cmd on Windows) to begin.
 
 class Bot {
   constructor(config) {
