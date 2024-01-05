@@ -2,7 +2,7 @@
 python3 -u ./main.py
 ```
 
-```md file=/README.md hidden=true
+```md file=/README.md
 Check if you have Python 3 installed on your system like this:
 
 \`\`\`
