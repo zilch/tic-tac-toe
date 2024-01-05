@@ -53,18 +53,16 @@ process.stdin.on("data", async (chunk) => {
 
     bot = new Bot(config);
 
-    send("start", botInstanceId);
+    send("start");
     return;
   }
-
-  const bot = bots.get(botInstanceId);
 
   if (!bot) {
     throw new Error("Bot not yet initialized.");
   }
 
   if (channel === "move") {
-    const move = await bot.move(...parseBoard(payload));
+    const move = await bot.move(parseBoard(payload));
     send("move", `${move.x},${move.y}`);
     return;
   }
